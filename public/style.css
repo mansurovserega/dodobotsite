@@ -1,0 +1,4 @@
+body { font-family: system-ui, sans-serif; margin:0; padding:40px; line-height:1.5; }
+.wrap { max-width:800px; margin:0 auto; }
+a { color:#0077cc; text-decoration:none; }
+a:hover { text-decoration:underline; }
