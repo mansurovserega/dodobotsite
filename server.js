@@ -25,8 +25,12 @@ const server = http.createServer((req, res) => {
   const parsed = url.parse(req.url, true);
   const pathname = parsed.pathname;
 
-  if (pathname === '/' || pathname === '/home') {
+  if (pathname === '/') {
     return sendFile(res, path.join(staticBase, 'index.html'));
+  }
+
+  if (pathname === '/home') {
+    return sendFile(res, path.join(staticBase, 'home.html'));
   }
 
   if (pathname === '/login') {
