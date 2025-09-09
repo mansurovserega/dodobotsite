@@ -89,14 +89,12 @@ export default function Callback() {
             setDetails(`Код ответа сервера: ${resp.status}`);
             lastErr = new Error(`HTTP ${resp.status}`);
           } else {
-            const okByMessage =
-              resp.data && (resp.data.success === true || resp.data.message?.includes("успеш"));
-            if (okByMessage) {
+            const success = resp.data && resp.data.success === true;
+            if (success) {
               setStatus(STATUS.OK);
-              const { deep, web } = buildTelegramLink({ botUser, startParam: start });
+              const { deep } = buildTelegramLink({ botUser, startParam: start });
               setTimeout(() => {
                 window.location.href = deep;
-                setTimeout(() => (window.location.href = web), 600);
               }, autoRedirectMs);
             } else {
               setStatus(STATUS.FAIL);

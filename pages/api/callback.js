@@ -48,7 +48,20 @@ export default async function handler(req, res) {
     const serverResponse = await response.json();
     console.log("📨 Ответ от server.py:", serverResponse);
 
-    return res.status(200).json({ message: "Код успешно передан в server.py!" });
+    if (!response.ok || serverResponse.error || serverResponse.success === false) {
+      console.error("❌ Ошибка от server.py:", serverResponse);
+      return res.status(500).json({
+        success: false,
+        message:
+          serverResponse.message || "Не удалось получить токены от server.py",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        serverResponse.message || "Код успешно передан и токены получены",
+    });
 
   } catch (error) {
     console.error("❌ Ошибка обработки запроса:", error);
