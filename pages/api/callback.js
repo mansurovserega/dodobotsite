@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     const response = await fetch(serverUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id, code, state }),
+      body: JSON.stringify({ state, code }),
     });
 
     const serverResponse = await response.json();
