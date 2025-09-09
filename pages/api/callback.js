@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "SERVER_URL не задан в окружении" });
       }
 
-      const resp = await postJsonWithTimeout(`${base}/callback`, { chat_id, code }, { timeoutMs: 15000 });
+      const resp = await postJsonWithTimeout(`${base}/callback`, { chat_id, state, code }, { timeoutMs: 15000 });
 
       // Успех считаем по HTTP 200..299 и success/message в ответе
       const okByMessage = resp.data && (resp.data.success === true || /успеш/i.test(resp.data.message || ""));
