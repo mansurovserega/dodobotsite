@@ -1,30 +1,28 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-export default function Login() {
+export default function Home() {
   const router = useRouter();
-
   const [chatId, setChatId] = useState(null);
-  const [stateValue, setStateValue] = useState(null);
+  const [state, setState] = useState(null);
   const [authUrl, setAuthUrl] = useState(null);
-  const [region, setRegion] = useState(""); // "cng" | "other"
-  const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState("");
 
   useEffect(() => {
-    if (!router.isReady) return;
-    if (router.query.chat_id) setChatId(String(router.query.chat_id));
-  }, [router.isReady, router.query.chat_id]);
+    if (typeof window === "undefined") return;
+    if (router.query.chat_id) {
+      setChatId(router.query.chat_id);
+    }
+  }, [router.query.chat_id]);
 
-  const handleRegionSelect = async (selected) => {
+  const handleCountrySelect = async (selectedCountry) => {
     if (!chatId) return;
 
-    setLoading(true);
-    setRegion(selected);
-
+    setCountry(selectedCountry);
     const generatedState = Math.random().toString(36).substring(2, 15);
-    setStateValue(generatedState);
+    setState(generatedState);
 
-    const regionName = selected === "cng" ? "СНГ" : "Другие страны";
+    const countryName = selectedCountry === "kz" ? "Казахстан" : "ОАЭ";
 
     await fetch("/api/save-user", {
       method: "POST",
@@ -32,260 +30,116 @@ export default function Login() {
       body: JSON.stringify({
         chat_id: chatId,
         state: generatedState,
-        country: regionName,
+        country: countryName,
       }),
     });
 
-    const domain = selected === "other" ? "dodois.com" : "dodois.io";
-    const redirectUri = "https://dodobot.ru/callback";
+    const domain = selectedCountry === "ae" ? "dodois.com" : "dodois.io";
+    const redirectUri = "https://dodobot.ru/callback"; // 👈 здесь твой Timeweb-домен
 
-    const authLink =
-      `https://auth.${domain}/connect/authorize` +
-      `?client_id=cuD1x` +
-      `&scope=${encodeURIComponent(
-        "openid deliverystatistics staffmembers:read staffmembersearch staffmembers:write offline_access production incentives sales email employee phone profile roles ext_profile user.role:read organizationstructure productionefficiency orders products stockitems accounting stopsales staffshifts:read unitshifts:read unit:read shared"
-      )}` +
-      `&response_type=code` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&code_challenge=eXf5tgpyuKEjN1z9uies_APBJaMV-VdgmRbP2m5L_rs` +
-      `&code_challenge_method=S256` +
-      `&state=${encodeURIComponent(generatedState)}`;
-
+    const authLink = `https://auth.${domain}/connect/authorize?client_id=cuD1x&scope=openid deliverystatistics staffmembers:read staffmembersearch staffmembers:write offline_access production incentives sales email employee phone profile roles ext_profile user.role:read organizationstructure productionefficiency orders products stockitems accounting stopsales staffshifts:read unitshifts:read unit:read shared&response_type=code&redirect_uri=${redirectUri}&code_challenge=eXf5tgpyuKEjN1z9uies_APBJaMV-VdgmRbP2m5L_rs&code_challenge_method=S256&state=${generatedState}`;
     setAuthUrl(authLink);
-    setLoading(false);
   };
 
   return (
-    <div className="wrap">
-      <div className="bg" />
-      <div className="noise" />
+    <div className="container">
+      <h1>Добро пожаловать 👋</h1>
 
-      <main className="card">
-        <div className="title">А Л Ь Т Р О Н</div>
-        <div className="line" />
-
-        {!region ? (
-          <>
-            <div className="sub">Выберите регион для авторизации</div>
-
-            <div className="buttons">
-              <button
-                className="btn"
-                onClick={() => handleRegionSelect("cng")}
-                disabled={!chatId || loading}
-              >
-                СНГ
-              </button>
-
-              <button
-                className="btn"
-                onClick={() => handleRegionSelect("other")}
-                disabled={!chatId || loading}
-              >
-                Другие страны
-              </button>
-            </div>
-
-            {!chatId && (
-              <div className="muted">
-                Открой страницу по ссылке с <b>chat_id</b>.
-              </div>
-            )}
-
-            {loading && <div className="muted">⏳ Подготовка…</div>}
-          </>
-        ) : authUrl ? (
-          <>
-            <div className="sub">
-              Вы выбрали:{" "}
-              <b>{region === "cng" ? "СНГ" : "Другие страны"}</b>
-            </div>
-
-            <a className="auth" href={authUrl}>
-              Авторизация
-            </a>
-
-            <button
-              className="link"
-              onClick={() => {
-                setRegion("");
-                setAuthUrl(null);
-                setStateValue(null);
-              }}
-            >
-              ← Назад
-            </button>
-          </>
-        ) : (
-          <div className="muted">⏳ Генерация ссылки…</div>
-        )}
-      </main>
+      {!country ? (
+        <>
+          <p>Выберите вашу страну для авторизации:</p>
+          <select onChange={(e) => handleCountrySelect(e.target.value)}>
+            <option value="">— Выбрать страну —</option>
+            <option value="kz">🇰🇿 Казахстан</option>
+            <option value="ae">🇦🇪 ОАЭ</option>
+          </select>
+        </>
+      ) : authUrl ? (
+        <>
+          <p>Вы выбрали: <strong>{country === "kz" ? "Казахстан" : "ОАЭ"}</strong></p>
+          <p>Нажмите кнопку ниже для входа:</p>
+          <a href={authUrl} className="auth-button">Авторизоваться через Dodo IS</a>
+        </>
+      ) : (
+        <p>⏳ Генерация ссылки...</p>
+      )}
 
       <style jsx>{`
-        .wrap {
+        .container {
           min-height: 100vh;
-          display: grid;
-          place-items: center;
-          position: relative;
-          overflow: hidden;
-          padding: 24px;
-          color: #fff;
-          font-family: system-ui, -apple-system, "SF Pro Display", Inter,
-            "Segoe UI", sans-serif;
-          background: #000;
-        }
-
-        /* технологичный тёмно-красный/чёрный фон */
-        .bg {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-              900px 700px at 22% 22%,
-              rgba(220, 0, 0, 0.35),
-              transparent 60%
-            ),
-            radial-gradient(
-              900px 700px at 78% 72%,
-              rgba(160, 0, 0, 0.22),
-              transparent 62%
-            ),
-            linear-gradient(135deg, rgba(255, 0, 0, 0.16), transparent 42%),
-            linear-gradient(180deg, #120000 0%, #000 72%);
-          filter: saturate(1.1);
-          transform: scale(1.05);
-        }
-
-        /* лёгкий цифровой шум */
-        .noise {
-          position: absolute;
-          inset: 0;
-          opacity: 0.08;
-          background-image: radial-gradient(
-            rgba(255, 255, 255, 0.6) 1px,
-            transparent 1px
-          );
-          background-size: 3px 3px;
-          mix-blend-mode: overlay;
-          pointer-events: none;
-        }
-
-        .card {
-          position: relative;
-          width: min(460px, 100%);
-          text-align: center;
-          padding: 30px 20px 18px;
-        }
-
-        .title {
-          font-size: 22px;
-          letter-spacing: 0.42em;
-          opacity: 0.92;
-          text-shadow: 0 0 22px rgba(255, 0, 0, 0.14);
-        }
-
-        .line {
-          width: 64px;
-          height: 1px;
-          margin: 14px auto 24px;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 30, 30, 0.9),
-            transparent
-          );
-        }
-
-        .sub {
-          font-size: 14px;
-          opacity: 0.72;
-          margin-bottom: 18px;
-        }
-
-        .buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-        }
-
-        .btn {
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          border-radius: 999px;
-          padding: 14px 14px;
-          font-size: 14px;
-          letter-spacing: 0.04em;
-          color: rgba(255, 255, 255, 0.92);
-          background: linear-gradient(
-            180deg,
-            rgba(42, 42, 42, 0.95),
-            rgba(22, 22, 22, 0.95)
-          );
-          box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-          cursor: pointer;
-          transition: transform 160ms ease, border-color 160ms ease,
-            box-shadow 160ms ease;
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .btn:hover {
-          transform: translateY(-1px);
-          border-color: rgba(255, 60, 60, 0.32);
-        }
-
-        .btn:active {
-          transform: translateY(1px);
-        }
-
-        .btn:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .auth {
-          display: inline-flex;
-          align-items: center;
+          display: flex;
+          flex-direction: column;
           justify-content: center;
-          width: min(340px, 100%);
-          margin: 6px auto 0;
-          padding: 14px 18px;
-          border-radius: 999px;
-          text-decoration: none;
+          align-items: center;
+          padding: 20px;
+          text-align: center;
           color: #fff;
-          letter-spacing: 0.04em;
-          background: linear-gradient(180deg, #b10000, #6f0000);
-          box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
-          border: 1px solid rgba(255, 80, 80, 0.25);
-          transition: transform 160ms ease;
+          font-family: 'Segoe UI', sans-serif;
+          box-sizing: border-box;
         }
 
-        .auth:hover {
-          transform: translateY(-1px);
+        h1 {
+          font-size: 2.4rem;
+          margin-bottom: 20px;
         }
 
-        .auth:active {
-          transform: translateY(1px);
-        }
-
-        .muted {
-          margin-top: 16px;
-          font-size: 13px;
-          opacity: 0.6;
-        }
-
-        .link {
-          margin-top: 14px;
-          background: transparent;
-          color: rgba(255, 255, 255, 0.7);
+        select {
+          padding: 12px 16px;
+          font-size: 16px;
+          border-radius: 12px;
           border: none;
+          background-color: #1e1e1e;
+          color: #fff;
+          margin-top: 20px;
           cursor: pointer;
-          font-size: 13px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          transition: 0.2s;
         }
 
-        @media (max-width: 420px) {
-          .buttons {
-            grid-template-columns: 1fr;
+        select:hover {
+          background-color: #2a2a2a;
+        }
+
+        .auth-button {
+          display: inline-block;
+          margin-top: 30px;
+          padding: 14px 32px;
+          font-size: 17px;
+          background-color: #ff6600;
+          border-radius: 28px;
+          color: #fff;
+          text-decoration: none;
+          transition: 0.3s ease;
+          box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
+        }
+
+        .auth-button:hover {
+          background-color: #e65800;
+        }
+
+        @media (max-width: 480px) {
+          .container {
+            padding: 30px 20px;
           }
+          h1 {
+            font-size: 1.8rem;
+          }
+          .auth-button {
+            font-size: 16px;
+            padding: 12px 24px;
+          }
+          select {
+            width: 100%;
+          }
+        }
+      `}</style>
+
+      <style global jsx>{`
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden;
+          background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
         }
       `}</style>
     </div>
