@@ -48,7 +48,7 @@ export default function Callback() {
   const [status, setStatus] = useState(STATUS.WAIT);
   const [details, setDetails] = useState("");
 
-  // ✅ сразу mobile, потом уточним
+  // ✅ стартуем с mobile (для iPhone), потом уточняем
   const [bgUrl, setBgUrl] = useState("/images/bg-mobile.jpg");
 
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL; // "/api"
@@ -65,7 +65,7 @@ export default function Callback() {
     };
   }, [router.isReady, router.query]);
 
-  // ✅ фон как на авторизации
+  // ✅ фон как на авторизации + фиксим поворот/viewport
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -79,7 +79,14 @@ export default function Callback() {
 
     pickBg();
     window.addEventListener("resize", pickBg);
-    return () => window.removeEventListener("resize", pickBg);
+    window.addEventListener("orientationchange", pickBg);
+    window.visualViewport?.addEventListener("resize", pickBg);
+
+    return () => {
+      window.removeEventListener("resize", pickBg);
+      window.removeEventListener("orientationchange", pickBg);
+      window.visualViewport?.removeEventListener("resize", pickBg);
+    };
   }, []);
 
   useEffect(() => {
@@ -144,7 +151,6 @@ export default function Callback() {
 
   return (
     <div className="container">
-      {/* ✅ скроллится только тут, фон не “тянется” */}
       <div className="scroll">
         <Head>
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -177,25 +183,18 @@ export default function Callback() {
         </div>
       </div>
 
-      {/* ✅ глобально: запрещаем скролл body, чтобы iOS не показывал “синее” при протяжке */}
       <style jsx global>{`
         html,
         body,
         #__next {
           height: 100%;
           margin: 0;
-          padding: 0;
-          overflow: hidden; /* 🔑 */
+          padding: 0; /* ✅ никаких safe-area padding на body */
+          overflow: hidden; /* ✅ body не тянется */
           background: #000; /* запасной */
         }
         :root {
           color-scheme: dark;
-        }
-        @supports (padding: max(0px)) {
-          body {
-            padding: env(safe-area-inset-top) env(safe-area-inset-right)
-              env(safe-area-inset-bottom) env(safe-area-inset-left);
-          }
         }
       `}</style>
 
@@ -207,11 +206,14 @@ export default function Callback() {
           height: 100dvh;
         }
 
-        /* ✅ ФИКСИРОВАННЫЙ фон на весь экран (не двигается) */
+        /* ✅ ФИКСИРОВАННЫЙ фон на весь экран (не двигается, не рвётся при повороте) */
         .container::before {
           content: "";
           position: fixed;
-          inset: 0;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
           z-index: -2;
           pointer-events: none;
 
@@ -236,7 +238,7 @@ export default function Callback() {
           );
         }
 
-        /* ✅ скролл только внутри, без rubber-band фона */
+        /* ✅ safe-area переносим сюда, чтобы при повороте не появлялись чёрные края */
         .scroll {
           height: 100%;
           overflow-y: auto;
@@ -245,7 +247,12 @@ export default function Callback() {
 
           display: grid;
           place-items: center;
-          padding: 24px;
+
+          padding: calc(24px + env(safe-area-inset-top))
+            calc(24px + env(safe-area-inset-right))
+            calc(24px + env(safe-area-inset-bottom))
+            calc(24px + env(safe-area-inset-left));
+
           box-sizing: border-box;
           color: #fff;
           font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans;
