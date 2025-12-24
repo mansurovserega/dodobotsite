@@ -24,7 +24,14 @@ export default function Home() {
 
     pickBg();
     window.addEventListener("resize", pickBg);
-    return () => window.removeEventListener("resize", pickBg);
+    window.addEventListener("orientationchange", pickBg);
+    window.visualViewport?.addEventListener("resize", pickBg);
+
+    return () => {
+      window.removeEventListener("resize", pickBg);
+      window.removeEventListener("orientationchange", pickBg);
+      window.visualViewport?.removeEventListener("resize", pickBg);
+    };
   }, [router.query.chat_id]);
 
   const handleCountrySelect = async (selected) => {
@@ -58,7 +65,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* ✅ скроллится только это, фон не дергается */}
       <div className="scroll">
         <div className="card">
           <h1>Добро пожаловать 👋</h1>
@@ -100,13 +106,17 @@ export default function Home() {
           height: 100dvh;
         }
 
-        /* ✅ фиксированный фон на весь экран */
+        /* ✅ фиксированный фон на весь экран (не рвётся при повороте) */
         .container::before {
           content: "";
           position: fixed;
-          inset: 0;
+          top: 0;
+          left: 0;
+          width: 100vw; /* 🔑 */
+          height: 100vh; /* 🔑 */
           z-index: -2;
           pointer-events: none;
+
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
@@ -126,7 +136,7 @@ export default function Home() {
           );
         }
 
-        /* ✅ вот это важное: скролл только тут */
+        /* ✅ safe-area в padding, чтобы при повороте не появлялись чёрные края */
         .scroll {
           height: 100%;
           overflow-y: auto;
@@ -136,7 +146,12 @@ export default function Home() {
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 22px;
+
+          padding: calc(22px + env(safe-area-inset-top))
+            calc(22px + env(safe-area-inset-right))
+            calc(22px + env(safe-area-inset-bottom))
+            calc(22px + env(safe-area-inset-left));
+
           box-sizing: border-box;
         }
 
@@ -238,9 +253,9 @@ export default function Home() {
         #__next {
           height: 100%;
           margin: 0;
-          padding: 0;
-          overflow: hidden; /* ✅ главное: body не скроллится */
-          background: #000; /* чтобы никогда не было синего */
+          padding: 0; /* ✅ без safe-area на body */
+          overflow: hidden;
+          background: #000;
         }
 
         :root {
