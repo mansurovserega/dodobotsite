@@ -7,7 +7,9 @@ export default function Home() {
   const [state, setState] = useState(null);
   const [authUrl, setAuthUrl] = useState(null);
   const [country, setCountry] = useState(""); // "kz" | "ae"
-  const [bgUrl, setBgUrl] = useState("/images/bg-desktop.jpg");
+
+  // ✅ по умолчанию ставим mobile, чтобы на iPhone сразу был фон (без “черных полос” до hydration)
+  const [bgUrl, setBgUrl] = useState("/images/bg-mobile.jpg");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -76,8 +78,7 @@ export default function Home() {
         ) : authUrl ? (
           <>
             <p>
-              Вы выбрали:{" "}
-              <strong>{country === "kz" ? "СНГ" : "Другие страны"}</strong>
+              Вы выбрали: <strong>{country === "kz" ? "СНГ" : "Другие страны"}</strong>
             </p>
             <p>Нажмите кнопку ниже для входа:</p>
 
@@ -91,8 +92,10 @@ export default function Home() {
       </div>
 
       <style jsx>{`
+        /* ✅ Контент + фиксированный фон (iOS-safe) */
         .container {
           min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -102,10 +105,37 @@ export default function Home() {
           font-family: "Segoe UI", sans-serif;
           box-sizing: border-box;
 
+          position: relative;
+          isolation: isolate; /* чтобы псевдослои ушли под контент */
+        }
+
+        /* Фон ВСЕГДА на весь экран */
+        .container::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: -2;
+          pointer-events: none;
+
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
+        }
+
+        /* Мягкое затемнение поверх фона, чтобы читалось */
+        .container::after {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          pointer-events: none;
+
+          background: radial-gradient(
+            900px 520px at 50% 28%,
+            rgba(0, 0, 0, 0.18),
+            rgba(0, 0, 0, 0.62)
+          );
         }
 
         .card {
@@ -136,7 +166,6 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        /* ✅ Нормальная кнопка БЕЗ PNG: неон/кибер стиль */
         .neoBtn {
           appearance: none;
           border: none;
@@ -150,7 +179,7 @@ export default function Home() {
           border-radius: 999px;
 
           color: #fff;
-          font-weight: 700;
+          font-weight: 800;
           font-size: 16px;
           letter-spacing: 0.2px;
 
@@ -160,10 +189,7 @@ export default function Home() {
 
           text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 
-          /* рамка + свечение */
-          box-shadow:
-            0 0 0 1px rgba(255, 0, 0, 0.55),
-            0 0 14px rgba(255, 0, 0, 0.55),
+          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.55), 0 0 14px rgba(255, 0, 0, 0.55),
             inset 0 0 14px rgba(255, 0, 0, 0.25);
 
           transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -172,9 +198,7 @@ export default function Home() {
         .neoBtn:hover {
           transform: translateY(-1px);
           background: rgba(0, 0, 0, 0.26);
-          box-shadow:
-            0 0 0 1px rgba(255, 0, 0, 0.85),
-            0 0 20px rgba(255, 0, 0, 0.85),
+          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.85), 0 0 20px rgba(255, 0, 0, 0.85),
             inset 0 0 18px rgba(255, 0, 0, 0.35);
         }
 
@@ -205,10 +229,24 @@ export default function Home() {
 
       <style global jsx>{`
         html,
-        body {
+        body,
+        #__next {
+          height: 100%;
           margin: 0;
           padding: 0;
           overflow-x: hidden;
+          background: #000; /* запасной цвет */
+        }
+
+        @supports (padding: max(0px)) {
+          body {
+            padding: env(safe-area-inset-top) env(safe-area-inset-right)
+              env(safe-area-inset-bottom) env(safe-area-inset-left);
+          }
+        }
+
+        :root {
+          color-scheme: dark;
         }
       `}</style>
     </div>
