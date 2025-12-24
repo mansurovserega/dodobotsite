@@ -12,10 +12,8 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // chat_id из query
     if (router.query.chat_id) setChatId(router.query.chat_id);
 
-    // выбор фона: mobile / desktop
     const pickBg = () => {
       const isMobile =
         window.matchMedia?.("(max-width: 768px)")?.matches ||
@@ -32,7 +30,6 @@ export default function Home() {
   const handleCountrySelect = async (selected) => {
     if (!chatId) return;
 
-    // СНГ -> kz, Другие страны -> ae
     const selectedCountry = selected === "sng" ? "kz" : "ae";
     setCountry(selectedCountry);
 
@@ -105,19 +102,19 @@ export default function Home() {
           font-family: "Segoe UI", sans-serif;
           box-sizing: border-box;
 
-          /* ФОНЫ */
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
         }
 
-        /* чуть затемняем фон, чтобы текст читался */
         .card {
           width: min(520px, 100%);
           padding: 26px 22px;
           border-radius: 18px;
-          background: rgba(0, 0, 0, 0.45);
+
+          /* Чуть легче, чтобы кнопка не “тонулa” */
+          background: rgba(0, 0, 0, 0.35);
           backdrop-filter: blur(6px);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
           border: 1px solid rgba(255, 255, 255, 0.06);
@@ -141,43 +138,42 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        /* КНОПКИ: фон-картинка button.png */
+        /* ✅ КНОПКА: прозрачный фон + рамка/свечение из PNG */
         .imgBtn {
           appearance: none;
           border: none;
           cursor: pointer;
-          color: #fff;
-          font-weight: 600;
-          font-size: 16px;
 
           width: 240px;
           max-width: 100%;
           height: 56px;
 
+          background-color: transparent; /* 🔑 */
           background-image: url("/images/button.png");
-          background-size: 100% 100%;
           background-repeat: no-repeat;
           background-position: center;
+          background-size: contain; /* 🔑 не растягиваем свечение */
 
-          /* чтобы текст был ровно по центру */
+          color: #fff;
+          font-weight: 600;
+          font-size: 16px;
+
           display: inline-flex;
           align-items: center;
           justify-content: center;
 
-          /* чуть “вдавливаем” текст */
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-
-          transition: transform 0.12s ease, filter 0.12s ease;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+          transition: transform 0.15s ease, filter 0.15s ease;
         }
 
         .imgBtn:hover {
           transform: translateY(-1px);
-          filter: brightness(1.05);
+          filter: brightness(1.12);
         }
 
         .imgBtn:active {
-          transform: translateY(0px) scale(0.99);
-          filter: brightness(0.98);
+          transform: scale(0.98);
+          filter: brightness(0.95);
         }
 
         .linkBtn {
@@ -194,6 +190,7 @@ export default function Home() {
           }
           .imgBtn {
             width: 100%;
+            max-width: 280px;
             height: 54px;
             font-size: 16px;
           }
