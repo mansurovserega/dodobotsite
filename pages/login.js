@@ -65,12 +65,12 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* ✅ Верхний бренд */}
-      <div className="brand" aria-hidden="true">
-        <span className="brandText">АЛЬТРОН</span>
-      </div>
-
       <div className="scroll">
+        {/* ✅ Бренд в нужной зоне (как на рисунке) */}
+        <div className="brandBlock">
+          <div className="brandText">АЛЬТРОН</div>
+        </div>
+
         <div className="card">
           <h1>Добро пожаловать 👋</h1>
 
@@ -111,7 +111,6 @@ export default function Home() {
           height: 100dvh;
         }
 
-        /* ✅ фиксированный фон на весь экран (не рвётся при повороте) */
         .container::before {
           content: "";
           position: fixed;
@@ -121,7 +120,6 @@ export default function Home() {
           height: 100vh;
           z-index: -2;
           pointer-events: none;
-
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
@@ -141,30 +139,6 @@ export default function Home() {
           );
         }
 
-        /* ✅ Верхний заголовок Альтрон (крупнее + ниже) */
-        .brand {
-          position: fixed;
-          top: calc(34px + env(safe-area-inset-top)); /* было 14px */
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 10;
-          pointer-events: none;
-        }
-
-        .brandText {
-          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
-          font-weight: 900;
-          font-size: 30px; /* было 22px */
-          letter-spacing: 6px; /* было 4px */
-          text-transform: uppercase;
-          color: #fff;
-          opacity: 0.98;
-
-          text-shadow: 0 0 10px rgba(255, 0, 0, 0.55), 0 0 22px rgba(255, 0, 0, 0.45),
-            0 0 42px rgba(255, 0, 0, 0.28);
-        }
-
-        /* ✅ safe-area в padding, чтобы при повороте не появлялись чёрные края */
         .scroll {
           height: 100%;
           overflow-y: auto;
@@ -172,18 +146,40 @@ export default function Home() {
           overscroll-behavior: none;
 
           display: flex;
-          justify-content: center;
+          flex-direction: column;
           align-items: center;
+          justify-content: center;
+
+          gap: 18px;
 
           padding: calc(22px + env(safe-area-inset-top))
             calc(22px + env(safe-area-inset-right))
             calc(22px + env(safe-area-inset-bottom))
             calc(22px + env(safe-area-inset-left));
 
-          /* чтобы карточка не залезала под “АЛЬТРОН” */
-          padding-top: calc(110px + env(safe-area-inset-top)); /* было 70px */
-
           box-sizing: border-box;
+        }
+
+        /* ✅ блок бренда — ровно как зона на рисунке */
+        .brandBlock {
+          width: min(520px, 100%);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 6px 0 4px;
+        }
+
+        .brandText {
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-weight: 900;
+          font-size: 30px;
+          letter-spacing: 6px;
+          text-transform: uppercase;
+          color: #fff;
+          opacity: 0.98;
+
+          text-shadow: 0 0 10px rgba(255, 0, 0, 0.55), 0 0 22px rgba(255, 0, 0, 0.45),
+            0 0 42px rgba(255, 0, 0, 0.28);
         }
 
         .card {
@@ -270,8 +266,8 @@ export default function Home() {
 
         @media (max-width: 480px) {
           .brandText {
-            font-size: 24px; /* было 18px */
-            letter-spacing: 5px; /* было 3px */
+            font-size: 24px;
+            letter-spacing: 5px;
           }
 
           h1 {
