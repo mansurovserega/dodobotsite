@@ -6,19 +6,36 @@ export default function Home() {
   const [chatId, setChatId] = useState(null);
   const [state, setState] = useState(null);
   const [authUrl, setAuthUrl] = useState(null);
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState(""); // "kz" | "ae"
+  const [bgUrl, setBgUrl] = useState("/images/bg-desktop.jpg");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (router.query.chat_id) {
-      setChatId(router.query.chat_id);
-    }
+
+    // chat_id из query
+    if (router.query.chat_id) setChatId(router.query.chat_id);
+
+    // выбор фона: mobile / desktop
+    const pickBg = () => {
+      const isMobile =
+        window.matchMedia?.("(max-width: 768px)")?.matches ||
+        /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+
+      setBgUrl(isMobile ? "/images/bg-mobile.jpg" : "/images/bg-desktop.jpg");
+    };
+
+    pickBg();
+    window.addEventListener("resize", pickBg);
+    return () => window.removeEventListener("resize", pickBg);
   }, [router.query.chat_id]);
 
-  const handleCountrySelect = async (selectedCountry) => {
+  const handleCountrySelect = async (selected) => {
     if (!chatId) return;
 
+    // СНГ -> kz, Другие страны -> ae
+    const selectedCountry = selected === "sng" ? "kz" : "ae";
     setCountry(selectedCountry);
+
     const generatedState = Math.random().toString(36).substring(2, 15);
     setState(generatedState);
 
@@ -35,111 +52,160 @@ export default function Home() {
     });
 
     const domain = selectedCountry === "ae" ? "dodois.com" : "dodois.io";
-    const redirectUri = "https://dodobot.ru/callback"; // 👈 здесь твой Timeweb-домен
+    const redirectUri = "https://dodobot.ru/callback";
 
     const authLink = `https://auth.${domain}/connect/authorize?client_id=cuD1x&scope=openid deliverystatistics staffmembers:read staffmembersearch staffmembers:write offline_access production incentives sales email employee phone profile roles ext_profile user.role:read organizationstructure productionefficiency orders products stockitems accounting stopsales staffshifts:read unitshifts:read unit:read shared&response_type=code&redirect_uri=${redirectUri}&code_challenge=eXf5tgpyuKEjN1z9uies_APBJaMV-VdgmRbP2m5L_rs&code_challenge_method=S256&state=${generatedState}`;
+
     setAuthUrl(authLink);
   };
 
   return (
     <div className="container">
-      <h1>Добро пожаловать 👋</h1>
+      <div className="card">
+        <h1>Добро пожаловать 👋</h1>
 
-      {!country ? (
-        <>
-          <p>Выберите вашу страну для авторизации:</p>
-          <select onChange={(e) => handleCountrySelect(e.target.value)}>
-            <option value="">— Выбрать страну —</option>
-            <option value="kz">🇰🇿 Казахстан</option>
-            <option value="ae">🇦🇪 ОАЭ</option>
-          </select>
-        </>
-      ) : authUrl ? (
-        <>
-          <p>Вы выбрали: <strong>{country === "kz" ? "Казахстан" : "ОАЭ"}</strong></p>
-          <p>Нажмите кнопку ниже для входа:</p>
-          <a href={authUrl} className="auth-button">Авторизоваться через Dodo IS</a>
-        </>
-      ) : (
-        <p>⏳ Генерация ссылки...</p>
-      )}
+        {!country ? (
+          <>
+            <p>Выберите группу стран для авторизации:</p>
+            <div className="btnRow">
+              <button className="imgBtn" onClick={() => handleCountrySelect("sng")}>
+                СНГ
+              </button>
+              <button className="imgBtn" onClick={() => handleCountrySelect("other")}>
+                Другие страны
+              </button>
+            </div>
+          </>
+        ) : authUrl ? (
+          <>
+            <p>
+              Вы выбрали:{" "}
+              <strong>{country === "kz" ? "СНГ" : "Другие страны"}</strong>
+            </p>
+            <p>Нажмите кнопку ниже для входа:</p>
+
+            <a href={authUrl} className="imgBtn linkBtn">
+              Авторизация
+            </a>
+          </>
+        ) : (
+          <p>⏳ Генерация ссылки...</p>
+        )}
+      </div>
 
       <style jsx>{`
         .container {
           min-height: 100vh;
           display: flex;
-          flex-direction: column;
           justify-content: center;
           align-items: center;
-          padding: 20px;
+          padding: 22px;
           text-align: center;
           color: #fff;
-          font-family: 'Segoe UI', sans-serif;
+          font-family: "Segoe UI", sans-serif;
           box-sizing: border-box;
+
+          /* ФОНЫ */
+          background-image: url("${bgUrl}");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
+
+        /* чуть затемняем фон, чтобы текст читался */
+        .card {
+          width: min(520px, 100%);
+          padding: 26px 22px;
+          border-radius: 18px;
+          background: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(6px);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         h1 {
-          font-size: 2.4rem;
-          margin-bottom: 20px;
+          font-size: 2.2rem;
+          margin: 0 0 14px;
         }
 
-        select {
-          padding: 12px 16px;
-          font-size: 16px;
-          border-radius: 12px;
+        p {
+          margin: 10px 0;
+          opacity: 0.95;
+        }
+
+        .btnRow {
+          margin-top: 18px;
+          display: flex;
+          gap: 14px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        /* КНОПКИ: фон-картинка button.png */
+        .imgBtn {
+          appearance: none;
           border: none;
-          background-color: #1e1e1e;
-          color: #fff;
-          margin-top: 20px;
           cursor: pointer;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-          transition: 0.2s;
-        }
-
-        select:hover {
-          background-color: #2a2a2a;
-        }
-
-        .auth-button {
-          display: inline-block;
-          margin-top: 30px;
-          padding: 14px 32px;
-          font-size: 17px;
-          background-color: #ff6600;
-          border-radius: 28px;
           color: #fff;
-          text-decoration: none;
-          transition: 0.3s ease;
-          box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
+          font-weight: 600;
+          font-size: 16px;
+
+          width: 240px;
+          max-width: 100%;
+          height: 56px;
+
+          background-image: url("/images/button.png");
+          background-size: 100% 100%;
+          background-repeat: no-repeat;
+          background-position: center;
+
+          /* чтобы текст был ровно по центру */
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          /* чуть “вдавливаем” текст */
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+
+          transition: transform 0.12s ease, filter 0.12s ease;
         }
 
-        .auth-button:hover {
-          background-color: #e65800;
+        .imgBtn:hover {
+          transform: translateY(-1px);
+          filter: brightness(1.05);
+        }
+
+        .imgBtn:active {
+          transform: translateY(0px) scale(0.99);
+          filter: brightness(0.98);
+        }
+
+        .linkBtn {
+          text-decoration: none;
+          margin-top: 14px;
         }
 
         @media (max-width: 480px) {
-          .container {
-            padding: 30px 20px;
-          }
           h1 {
-            font-size: 1.8rem;
+            font-size: 1.7rem;
           }
-          .auth-button {
-            font-size: 16px;
-            padding: 12px 24px;
+          .card {
+            padding: 22px 16px;
           }
-          select {
+          .imgBtn {
             width: 100%;
+            height: 54px;
+            font-size: 16px;
           }
         }
       `}</style>
 
       <style global jsx>{`
-        html, body {
+        html,
+        body {
           margin: 0;
           padding: 0;
           overflow-x: hidden;
-          background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
         }
       `}</style>
     </div>
