@@ -6,9 +6,7 @@ export default function Home() {
   const [chatId, setChatId] = useState(null);
   const [state, setState] = useState(null);
   const [authUrl, setAuthUrl] = useState(null);
-  const [country, setCountry] = useState(""); // "kz" | "ae"
-
-  // ✅ по умолчанию ставим mobile, чтобы на iPhone сразу был фон (без “черных полос” до hydration)
+  const [country, setCountry] = useState("");
   const [bgUrl, setBgUrl] = useState("/images/bg-mobile.jpg");
 
   useEffect(() => {
@@ -60,82 +58,86 @@ export default function Home() {
 
   return (
     <div className="container">
-      <div className="card">
-        <h1>Добро пожаловать 👋</h1>
+      {/* ✅ скроллится только это, фон не дергается */}
+      <div className="scroll">
+        <div className="card">
+          <h1>Добро пожаловать 👋</h1>
 
-        {!country ? (
-          <>
-            <p>Выберите группу стран для авторизации:</p>
-            <div className="btnRow">
-              <button className="neoBtn" onClick={() => handleCountrySelect("sng")}>
-                СНГ
-              </button>
-              <button className="neoBtn" onClick={() => handleCountrySelect("other")}>
-                Другие страны
-              </button>
-            </div>
-          </>
-        ) : authUrl ? (
-          <>
-            <p>
-              Вы выбрали: <strong>{country === "kz" ? "СНГ" : "Другие страны"}</strong>
-            </p>
-            <p>Нажмите кнопку ниже для входа:</p>
+          {!country ? (
+            <>
+              <p>Выберите группу стран для авторизации:</p>
+              <div className="btnRow">
+                <button className="neoBtn" onClick={() => handleCountrySelect("sng")}>
+                  СНГ
+                </button>
+                <button className="neoBtn" onClick={() => handleCountrySelect("other")}>
+                  Другие страны
+                </button>
+              </div>
+            </>
+          ) : authUrl ? (
+            <>
+              <p>
+                Вы выбрали: <strong>{country === "kz" ? "СНГ" : "Другие страны"}</strong>
+              </p>
+              <p>Нажмите кнопку ниже для входа:</p>
 
-            <a href={authUrl} className="neoBtn linkBtn">
-              Авторизация
-            </a>
-          </>
-        ) : (
-          <p>⏳ Генерация ссылки...</p>
-        )}
+              <a href={authUrl} className="neoBtn linkBtn">
+                Авторизация
+              </a>
+            </>
+          ) : (
+            <p>⏳ Генерация ссылки...</p>
+          )}
+        </div>
       </div>
 
       <style jsx>{`
-        /* ✅ Контент + фиксированный фон (iOS-safe) */
         .container {
-          min-height: 100vh;
-          min-height: 100dvh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 22px;
-          text-align: center;
-          color: #fff;
-          font-family: "Segoe UI", sans-serif;
-          box-sizing: border-box;
-
           position: relative;
-          isolation: isolate; /* чтобы псевдослои ушли под контент */
+          isolation: isolate;
+          height: 100vh;
+          height: 100dvh;
         }
 
-        /* Фон ВСЕГДА на весь экран */
+        /* ✅ фиксированный фон на весь экран */
         .container::before {
           content: "";
           position: fixed;
           inset: 0;
           z-index: -2;
           pointer-events: none;
-
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
         }
 
-        /* Мягкое затемнение поверх фона, чтобы читалось */
         .container::after {
           content: "";
           position: fixed;
           inset: 0;
           z-index: -1;
           pointer-events: none;
-
           background: radial-gradient(
             900px 520px at 50% 28%,
             rgba(0, 0, 0, 0.18),
             rgba(0, 0, 0, 0.62)
           );
+        }
+
+        /* ✅ вот это важное: скролл только тут */
+        .scroll {
+          height: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: none;
+
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 22px;
+          box-sizing: border-box;
         }
 
         .card {
@@ -146,6 +148,9 @@ export default function Home() {
           backdrop-filter: blur(6px);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
           border: 1px solid rgba(255, 255, 255, 0.06);
+          text-align: center;
+          color: #fff;
+          font-family: "Segoe UI", sans-serif;
         }
 
         h1 {
@@ -234,15 +239,8 @@ export default function Home() {
           height: 100%;
           margin: 0;
           padding: 0;
-          overflow-x: hidden;
-          background: #000; /* запасной цвет */
-        }
-
-        @supports (padding: max(0px)) {
-          body {
-            padding: env(safe-area-inset-top) env(safe-area-inset-right)
-              env(safe-area-inset-bottom) env(safe-area-inset-left);
-          }
+          overflow: hidden; /* ✅ главное: body не скроллится */
+          background: #000; /* чтобы никогда не было синего */
         }
 
         :root {
