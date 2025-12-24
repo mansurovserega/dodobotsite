@@ -141,10 +141,10 @@ export default function Home() {
           );
         }
 
-        /* ✅ Верхний заголовок Альтрон */
+        /* ✅ Верхний заголовок Альтрон (крупнее + ниже) */
         .brand {
           position: fixed;
-          top: calc(14px + env(safe-area-inset-top));
+          top: calc(34px + env(safe-area-inset-top)); /* было 14px */
           left: 50%;
           transform: translateX(-50%);
           z-index: 10;
@@ -153,15 +153,15 @@ export default function Home() {
 
         .brandText {
           font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
-          font-weight: 800;
-          font-size: 22px;
-          letter-spacing: 4px;
+          font-weight: 900;
+          font-size: 30px; /* было 22px */
+          letter-spacing: 6px; /* было 4px */
           text-transform: uppercase;
           color: #fff;
-          opacity: 0.95;
+          opacity: 0.98;
 
-          text-shadow: 0 0 6px rgba(255, 0, 0, 0.55), 0 0 14px rgba(255, 0, 0, 0.45),
-            0 0 28px rgba(255, 0, 0, 0.35);
+          text-shadow: 0 0 10px rgba(255, 0, 0, 0.55), 0 0 22px rgba(255, 0, 0, 0.45),
+            0 0 42px rgba(255, 0, 0, 0.28);
         }
 
         /* ✅ safe-area в padding, чтобы при повороте не появлялись чёрные края */
@@ -181,7 +181,7 @@ export default function Home() {
             calc(22px + env(safe-area-inset-left));
 
           /* чтобы карточка не залезала под “АЛЬТРОН” */
-          padding-top: calc(70px + env(safe-area-inset-top));
+          padding-top: calc(110px + env(safe-area-inset-top)); /* было 70px */
 
           box-sizing: border-box;
         }
@@ -270,8 +270,8 @@ export default function Home() {
 
         @media (max-width: 480px) {
           .brandText {
-            font-size: 18px;
-            letter-spacing: 3px;
+            font-size: 24px; /* было 18px */
+            letter-spacing: 5px; /* было 3px */
           }
 
           h1 {
