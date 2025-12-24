@@ -34,7 +34,9 @@ async function postWithTimeout(url, body, { timeoutMs = 12000 } = {}) {
       signal: controller.signal,
     });
     let data = null;
-    try { data = await res.json(); } catch {}
+    try {
+      data = await res.json();
+    } catch {}
     return { ok: res.ok, status: res.status, data };
   } finally {
     clearTimeout(id);
@@ -46,7 +48,7 @@ export default function Callback() {
   const [status, setStatus] = useState(STATUS.WAIT);
   const [details, setDetails] = useState("");
 
-  // ✅ фон выбираем сразу: сначала mobile (норм для iPhone), потом уточняем в useEffect
+  // ✅ сразу mobile, потом уточним
   const [bgUrl, setBgUrl] = useState("/images/bg-mobile.jpg");
 
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL; // "/api"
@@ -141,85 +143,119 @@ export default function Callback() {
   const tgLink = `https://t.me/${botUser}${start ? `?start=${encodeURIComponent(start)}` : ""}`;
 
   return (
-    <div className="wrap">
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <title>Dodo IS — Callback</title>
-      </Head>
+    <div className="container">
+      {/* ✅ скроллится только тут, фон не “тянется” */}
+      <div className="scroll">
+        <Head>
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+          <title>Dodo IS — Callback</title>
+        </Head>
 
-      <div className="card">
-        <div className="logo">Dodo IS</div>
+        <div className="card">
+          <div className="logo">Dodo IS</div>
 
-        <h2 className={status === STATUS.OK ? "ok" : status.includes("⚠️") || status.includes("❌") ? "bad" : ""}>
-          {status}
-        </h2>
+          <h2 className={status === STATUS.OK ? "ok" : status.includes("⚠️") || status.includes("❌") ? "bad" : ""}>
+            {status}
+          </h2>
 
-        {details ? <p className="muted">{details}</p> : <p className="muted">Не закрывайте страницу — сейчас вернёмся в Telegram.</p>}
+          {details ? (
+            <p className="muted">{details}</p>
+          ) : (
+            <p className="muted">Не закрывайте страницу — сейчас вернёмся в Telegram.</p>
+          )}
 
-        <div className="spinner" aria-hidden />
+          <div className="spinner" aria-hidden />
 
-        <a className="neoBtn" href={tgLink}>
-          Открыть Telegram
-        </a>
+          <a className="neoBtn" href={tgLink}>
+            Открыть Telegram
+          </a>
 
-        <p className="hint">
-          Если Telegram не открылся автоматически, нажмите кнопку выше или{" "}
-          <a href={tgLink}>ссылку</a>.
-        </p>
+          <p className="hint">
+            Если Telegram не открылся автоматически, нажмите кнопку выше или{" "}
+            <a href={tgLink}>ссылку</a>.
+          </p>
+        </div>
       </div>
 
+      {/* ✅ глобально: запрещаем скролл body, чтобы iOS не показывал “синее” при протяжке */}
       <style jsx global>{`
-        html, body, #__next {
+        html,
+        body,
+        #__next {
           height: 100%;
           margin: 0;
           padding: 0;
-          overflow-x: hidden;
+          overflow: hidden; /* 🔑 */
           background: #000; /* запасной */
         }
-        :root { color-scheme: dark; }
+        :root {
+          color-scheme: dark;
+        }
         @supports (padding: max(0px)) {
           body {
             padding: env(safe-area-inset-top) env(safe-area-inset-right)
-                     env(safe-area-inset-bottom) env(safe-area-inset-left);
+              env(safe-area-inset-bottom) env(safe-area-inset-left);
           }
         }
       `}</style>
 
       <style jsx>{`
-        .wrap {
-          min-height: 100dvh;
-          display: grid;
-          place-items: center;
-          padding: 24px;
-          color: #fff;
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans;
+        .container {
+          position: relative;
+          isolation: isolate;
+          height: 100vh;
+          height: 100dvh;
+        }
 
-          /* ✅ фон ставим сюда (НЕ на body) */
+        /* ✅ ФИКСИРОВАННЫЙ фон на весь экран (не двигается) */
+        .container::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: -2;
+          pointer-events: none;
+
           background-image: url("${bgUrl}");
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
-          position: relative;
         }
 
-        /* лёгкое затемнение поверх фона */
-        .wrap::before {
+        /* затемнение */
+        .container::after {
           content: "";
-          position: absolute;
+          position: fixed;
           inset: 0;
-          background: radial-gradient(900px 500px at 50% 30%, rgba(0,0,0,0.20), rgba(0,0,0,0.65));
-          z-index: 0;
+          z-index: -1;
           pointer-events: none;
+
+          background: radial-gradient(
+            900px 520px at 50% 28%,
+            rgba(0, 0, 0, 0.18),
+            rgba(0, 0, 0, 0.62)
+          );
+        }
+
+        /* ✅ скролл только внутри, без rubber-band фона */
+        .scroll {
+          height: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: none;
+
+          display: grid;
+          place-items: center;
+          padding: 24px;
+          box-sizing: border-box;
+          color: #fff;
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans;
+          text-align: center;
         }
 
         .card {
-          position: relative;
-          z-index: 1;
-
           width: min(520px, 100%);
           padding: 26px 22px;
           border-radius: 18px;
-          text-align: center;
 
           background: rgba(0, 0, 0, 0.35);
           backdrop-filter: blur(6px);
@@ -239,21 +275,34 @@ export default function Callback() {
           background: rgba(0, 0, 0, 0.25);
           border: 1px solid rgba(255, 0, 0, 0.35);
           box-shadow: 0 0 14px rgba(255, 0, 0, 0.35), inset 0 0 12px rgba(255, 0, 0, 0.18);
-
           color: #fff;
           font-weight: 800;
         }
 
-        h2 { margin: 10px 0 6px; font-weight: 800; line-height: 1.2; }
-        h2.ok { text-shadow: 0 0 14px rgba(0, 255, 120, 0.25); }
-        h2.bad { text-shadow: 0 0 14px rgba(255, 0, 0, 0.25); }
+        h2 {
+          margin: 10px 0 6px;
+          font-weight: 800;
+          line-height: 1.2;
+        }
+        h2.ok {
+          text-shadow: 0 0 14px rgba(0, 255, 120, 0.25);
+        }
+        h2.bad {
+          text-shadow: 0 0 14px rgba(255, 0, 0, 0.25);
+        }
 
-        .muted { margin: 0 auto 10px; opacity: 0.86; line-height: 1.4; }
+        .muted {
+          margin: 0 auto 10px;
+          opacity: 0.86;
+          line-height: 1.4;
+        }
 
         .spinner {
-          width: 28px; height: 28px; border-radius: 50%;
-          border: 3px solid rgba(255,255,255,0.25);
-          border-top-color: rgba(255,0,0,0.9);
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.25);
+          border-top-color: rgba(255, 0, 0, 0.9);
           margin: 14px auto 14px;
           animation: spin 0.9s linear infinite;
         }
@@ -281,9 +330,7 @@ export default function Callback() {
           text-decoration: none;
           margin: 8px auto 0;
 
-          box-shadow:
-            0 0 0 1px rgba(255, 0, 0, 0.55),
-            0 0 14px rgba(255, 0, 0, 0.55),
+          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.55), 0 0 14px rgba(255, 0, 0, 0.55),
             inset 0 0 14px rgba(255, 0, 0, 0.25);
 
           transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -292,22 +339,40 @@ export default function Callback() {
         .neoBtn:hover {
           transform: translateY(-1px);
           background: rgba(0, 0, 0, 0.26);
-          box-shadow:
-            0 0 0 1px rgba(255, 0, 0, 0.85),
-            0 0 20px rgba(255, 0, 0, 0.85),
+          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.85), 0 0 20px rgba(255, 0, 0, 0.85),
             inset 0 0 18px rgba(255, 0, 0, 0.35);
         }
 
-        .neoBtn:active { transform: scale(0.97); }
+        .neoBtn:active {
+          transform: scale(0.97);
+        }
 
-        .hint { opacity: 0.85; margin-top: 10px; }
-        .hint a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+        .hint {
+          opacity: 0.85;
+          margin-top: 10px;
+        }
+        .hint a {
+          color: #fff;
+          font-weight: 700;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
 
         @media (max-width: 480px) {
-          .card { padding: 22px 16px; }
-          .neoBtn { width: 100%; max-width: 280px; height: 54px; }
+          .card {
+            padding: 22px 16px;
+          }
+          .neoBtn {
+            width: 100%;
+            max-width: 280px;
+            height: 54px;
+          }
         }
       `}</style>
     </div>
