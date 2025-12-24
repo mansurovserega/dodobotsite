@@ -34,9 +34,7 @@ async function postWithTimeout(url, body, { timeoutMs = 12000 } = {}) {
       signal: controller.signal,
     });
     let data = null;
-    try {
-      data = await res.json();
-    } catch {}
+    try { data = await res.json(); } catch {}
     return { ok: res.ok, status: res.status, data };
   } finally {
     clearTimeout(id);
@@ -47,9 +45,11 @@ export default function Callback() {
   const router = useRouter();
   const [status, setStatus] = useState(STATUS.WAIT);
   const [details, setDetails] = useState("");
-  const [bgUrl, setBgUrl] = useState("/images/bg-desktop.jpg");
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL; // должно быть "/api"
+  // ✅ фон выбираем сразу: сначала mobile (норм для iPhone), потом уточняем в useEffect
+  const [bgUrl, setBgUrl] = useState("/images/bg-mobile.jpg");
+
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL; // "/api"
   const botUser = process.env.NEXT_PUBLIC_BOT_USERNAME || "managerdodo_bot";
   const autoRedirectMs = 1500;
 
@@ -63,7 +63,7 @@ export default function Callback() {
     };
   }, [router.isReady, router.query]);
 
-  // фон как на странице авторизации: mobile/desktop
+  // ✅ фон как на авторизации
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -99,30 +99,30 @@ export default function Callback() {
       setDetails("");
 
       const maxAttempts = 2;
-      let lastErr = null;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           const resp = await postWithTimeout(`${serverUrl}/callback`, { state, code });
+
           if (!resp.ok) {
+            setStatus(STATUS.FAIL);
             setDetails(`Код ответа сервера: ${resp.status}`);
-            lastErr = new Error(`HTTP ${resp.status}`);
-          } else {
-            const success = resp.data && resp.data.success === true;
-            if (success) {
-              setStatus(STATUS.OK);
-              const { deep } = buildTelegramLink({ botUser, startParam: start });
-              setTimeout(() => {
-                window.location.href = deep;
-              }, autoRedirectMs);
-            } else {
-              setStatus(STATUS.FAIL);
-              setDetails(resp.data?.message || "Сервер не подтвердил авторизацию. Проверьте state/code.");
-            }
-            return;
+            continue;
           }
+
+          const success = resp.data && resp.data.success === true;
+          if (success) {
+            setStatus(STATUS.OK);
+            const { deep } = buildTelegramLink({ botUser, startParam: start });
+            setTimeout(() => {
+              window.location.href = deep;
+            }, autoRedirectMs);
+          } else {
+            setStatus(STATUS.FAIL);
+            setDetails(resp.data?.message || "Сервер не подтвердил авторизацию.");
+          }
+          return;
         } catch (e) {
-          lastErr = e;
           if (e.name === "AbortError") {
             setStatus(STATUS.TIMEOUT);
             setDetails("Превышено время ожидания ответа от сервера.");
@@ -130,13 +130,7 @@ export default function Callback() {
             setStatus(STATUS.SEND_ERR);
             setDetails(e.message || "Сетевая ошибка.");
           }
-          await new Promise((r) => setTimeout(r, 600));
         }
-      }
-
-      if (lastErr) {
-        setStatus(STATUS.FAIL);
-        setDetails("Не удалось завершить авторизацию. Попробуйте ещё раз.");
       }
     };
 
@@ -174,46 +168,20 @@ export default function Callback() {
         </p>
       </div>
 
-      {/* Глобально: фон-картинка как на авторизации */}
       <style jsx global>{`
-        html,
-        body,
-        #__next {
+        html, body, #__next {
           height: 100%;
-          min-height: 100%;
           margin: 0;
           padding: 0;
           overflow-x: hidden;
-          background: #000;
+          background: #000; /* запасной */
         }
-
-        body {
-          background-image: url("${bgUrl}");
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
-        }
-
-        /* затемнение для читабельности */
-        body::before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
-          background: radial-gradient(900px 500px at 50% 30%, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.6));
-        }
-
+        :root { color-scheme: dark; }
         @supports (padding: max(0px)) {
           body {
             padding: env(safe-area-inset-top) env(safe-area-inset-right)
-              env(safe-area-inset-bottom) env(safe-area-inset-left);
+                     env(safe-area-inset-bottom) env(safe-area-inset-left);
           }
-        }
-
-        :root {
-          color-scheme: dark;
         }
       `}</style>
 
@@ -224,13 +192,30 @@ export default function Callback() {
           place-items: center;
           padding: 24px;
           color: #fff;
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans,
-            "Apple Color Emoji", "Segoe UI Emoji";
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Noto Sans;
+
+          /* ✅ фон ставим сюда (НЕ на body) */
+          background-image: url("${bgUrl}");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
           position: relative;
-          z-index: 1; /* поверх overlay */
+        }
+
+        /* лёгкое затемнение поверх фона */
+        .wrap::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(900px 500px at 50% 30%, rgba(0,0,0,0.20), rgba(0,0,0,0.65));
+          z-index: 0;
+          pointer-events: none;
         }
 
         .card {
+          position: relative;
+          z-index: 1;
+
           width: min(520px, 100%);
           padding: 26px 22px;
           border-radius: 18px;
@@ -257,39 +242,22 @@ export default function Callback() {
 
           color: #fff;
           font-weight: 800;
-          letter-spacing: 0.2px;
         }
 
-        h2 {
-          margin: 10px 0 6px;
-          font-weight: 800;
-          line-height: 1.2;
-        }
-        h2.ok {
-          text-shadow: 0 0 14px rgba(0, 255, 120, 0.25);
-        }
-        h2.bad {
-          text-shadow: 0 0 14px rgba(255, 0, 0, 0.25);
-        }
+        h2 { margin: 10px 0 6px; font-weight: 800; line-height: 1.2; }
+        h2.ok { text-shadow: 0 0 14px rgba(0, 255, 120, 0.25); }
+        h2.bad { text-shadow: 0 0 14px rgba(255, 0, 0, 0.25); }
 
-        .muted {
-          margin: 0 auto 10px;
-          opacity: 0.86;
-          max-width: 520px;
-          line-height: 1.4;
-        }
+        .muted { margin: 0 auto 10px; opacity: 0.86; line-height: 1.4; }
 
         .spinner {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          border: 3px solid rgba(255, 255, 255, 0.25);
-          border-top-color: rgba(255, 0, 0, 0.9);
+          width: 28px; height: 28px; border-radius: 50%;
+          border: 3px solid rgba(255,255,255,0.25);
+          border-top-color: rgba(255,0,0,0.9);
           margin: 14px auto 14px;
           animation: spin 0.9s linear infinite;
         }
 
-        /* ✅ кнопка как на авторизации (неон, без png) */
         .neoBtn {
           appearance: none;
           border: none;
@@ -313,9 +281,9 @@ export default function Callback() {
           text-decoration: none;
           margin: 8px auto 0;
 
-          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-
-          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.55), 0 0 14px rgba(255, 0, 0, 0.55),
+          box-shadow:
+            0 0 0 1px rgba(255, 0, 0, 0.55),
+            0 0 14px rgba(255, 0, 0, 0.55),
             inset 0 0 14px rgba(255, 0, 0, 0.25);
 
           transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -324,41 +292,22 @@ export default function Callback() {
         .neoBtn:hover {
           transform: translateY(-1px);
           background: rgba(0, 0, 0, 0.26);
-          box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.85), 0 0 20px rgba(255, 0, 0, 0.85),
+          box-shadow:
+            0 0 0 1px rgba(255, 0, 0, 0.85),
+            0 0 20px rgba(255, 0, 0, 0.85),
             inset 0 0 18px rgba(255, 0, 0, 0.35);
         }
 
-        .neoBtn:active {
-          transform: scale(0.97);
-        }
+        .neoBtn:active { transform: scale(0.97); }
 
-        .hint {
-          opacity: 0.85;
-          margin-top: 10px;
-        }
+        .hint { opacity: 0.85; margin-top: 10px; }
+        .hint a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
-        .hint a {
-          color: #fff;
-          font-weight: 700;
-          text-decoration: underline;
-          text-underline-offset: 3px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 480px) {
-          .card {
-            padding: 22px 16px;
-          }
-          .neoBtn {
-            width: 100%;
-            max-width: 280px;
-            height: 54px;
-          }
+          .card { padding: 22px 16px; }
+          .neoBtn { width: 100%; max-width: 280px; height: 54px; }
         }
       `}</style>
     </div>
