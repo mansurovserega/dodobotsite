@@ -66,9 +66,11 @@ export default function Home() {
   return (
     <div className="container">
       <div className="scroll">
-        {/* ✅ Бренд в нужной зоне (как на рисунке) */}
-        <div className="brandBlock">
-          <div className="brandText">АЛЬТРОН</div>
+        {/* ✅ Бренд-панель */}
+        <div className="brandBlock" aria-hidden="true">
+          <div className="brandPanel">
+            <div className="brandText">АЛЬТРОН</div>
+          </div>
         </div>
 
         <div className="card">
@@ -160,20 +162,30 @@ export default function Home() {
           box-sizing: border-box;
         }
 
-        /* ✅ блок бренда — ровно как зона на рисунке */
         .brandBlock {
           width: min(520px, 100%);
           display: flex;
           justify-content: center;
           align-items: center;
-          padding: 6px 0 4px;
+          padding: 4px 0 6px;
+        }
+
+        /* ✅ “панель” под логотип, чтобы было как интерфейс */
+        .brandPanel {
+          padding: 14px 34px;
+          border-radius: 999px;
+          background: rgba(0, 0, 0, 0.35);
+          backdrop-filter: blur(10px);
+
+          border: 1px solid rgba(255, 0, 0, 0.25);
+          box-shadow: 0 0 22px rgba(255, 0, 0, 0.18), inset 0 0 18px rgba(255, 0, 0, 0.10);
         }
 
         .brandText {
-          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
-          font-weight: 900;
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+          font-weight: 800;
           font-size: 30px;
-          letter-spacing: 6px;
+          letter-spacing: 8px; /* 🔑 делает “кибер” */
           text-transform: uppercase;
           color: #fff;
           opacity: 0.98;
@@ -196,9 +208,9 @@ export default function Home() {
         }
 
         h1 {
-          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif !important;
           font-weight: 700;
-          letter-spacing: 0.6px;
+          letter-spacing: 0.8px;
           font-size: 2.1rem;
           margin: 0 0 14px;
           text-shadow: 0 0 10px rgba(255, 0, 0, 0.18);
@@ -230,7 +242,7 @@ export default function Home() {
           border-radius: 999px;
 
           color: #fff;
-          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif !important;
           font-weight: 700;
           font-size: 15px;
           letter-spacing: 1px;
@@ -265,9 +277,13 @@ export default function Home() {
         }
 
         @media (max-width: 480px) {
+          .brandPanel {
+            padding: 12px 26px;
+          }
+
           .brandText {
             font-size: 24px;
-            letter-spacing: 5px;
+            letter-spacing: 7px;
           }
 
           h1 {
@@ -297,7 +313,6 @@ export default function Home() {
           overflow: hidden;
           background: #000;
         }
-
         :root {
           color-scheme: dark;
         }
