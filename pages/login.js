@@ -65,6 +65,11 @@ export default function Home() {
 
   return (
     <div className="container">
+      {/* ✅ Верхний бренд */}
+      <div className="brand" aria-hidden="true">
+        <span className="brandText">АЛЬТРОН</span>
+      </div>
+
       <div className="scroll">
         <div className="card">
           <h1>Добро пожаловать 👋</h1>
@@ -112,8 +117,8 @@ export default function Home() {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100vw; /* 🔑 */
-          height: 100vh; /* 🔑 */
+          width: 100vw;
+          height: 100vh;
           z-index: -2;
           pointer-events: none;
 
@@ -136,6 +141,29 @@ export default function Home() {
           );
         }
 
+        /* ✅ Верхний заголовок Альтрон */
+        .brand {
+          position: fixed;
+          top: calc(14px + env(safe-area-inset-top));
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 10;
+          pointer-events: none;
+        }
+
+        .brandText {
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-weight: 800;
+          font-size: 22px;
+          letter-spacing: 4px;
+          text-transform: uppercase;
+          color: #fff;
+          opacity: 0.95;
+
+          text-shadow: 0 0 6px rgba(255, 0, 0, 0.55), 0 0 14px rgba(255, 0, 0, 0.45),
+            0 0 28px rgba(255, 0, 0, 0.35);
+        }
+
         /* ✅ safe-area в padding, чтобы при повороте не появлялись чёрные края */
         .scroll {
           height: 100%;
@@ -152,6 +180,9 @@ export default function Home() {
             calc(22px + env(safe-area-inset-bottom))
             calc(22px + env(safe-area-inset-left));
 
+          /* чтобы карточка не залезала под “АЛЬТРОН” */
+          padding-top: calc(70px + env(safe-area-inset-top));
+
           box-sizing: border-box;
         }
 
@@ -165,12 +196,16 @@ export default function Home() {
           border: 1px solid rgba(255, 255, 255, 0.06);
           text-align: center;
           color: #fff;
-          font-family: "Segoe UI", sans-serif;
+          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         }
 
         h1 {
-          font-size: 2.2rem;
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.6px;
+          font-size: 2.1rem;
           margin: 0 0 14px;
+          text-shadow: 0 0 10px rgba(255, 0, 0, 0.18);
         }
 
         p {
@@ -199,9 +234,11 @@ export default function Home() {
           border-radius: 999px;
 
           color: #fff;
-          font-weight: 800;
-          font-size: 16px;
-          letter-spacing: 0.2px;
+          font-family: "Orbitron", system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
 
           display: inline-flex;
           align-items: center;
@@ -232,17 +269,24 @@ export default function Home() {
         }
 
         @media (max-width: 480px) {
+          .brandText {
+            font-size: 18px;
+            letter-spacing: 3px;
+          }
+
           h1 {
             font-size: 1.7rem;
           }
+
           .card {
             padding: 22px 16px;
           }
+
           .neoBtn {
             width: 100%;
             max-width: 280px;
             height: 54px;
-            font-size: 16px;
+            font-size: 14px;
           }
         }
       `}</style>
@@ -253,7 +297,7 @@ export default function Home() {
         #__next {
           height: 100%;
           margin: 0;
-          padding: 0; /* ✅ без safe-area на body */
+          padding: 0;
           overflow: hidden;
           background: #000;
         }
