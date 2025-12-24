@@ -65,10 +65,10 @@ export default function Home() {
           <>
             <p>Выберите группу стран для авторизации:</p>
             <div className="btnRow">
-              <button className="imgBtn" onClick={() => handleCountrySelect("sng")}>
+              <button className="neoBtn" onClick={() => handleCountrySelect("sng")}>
                 СНГ
               </button>
-              <button className="imgBtn" onClick={() => handleCountrySelect("other")}>
+              <button className="neoBtn" onClick={() => handleCountrySelect("other")}>
                 Другие страны
               </button>
             </div>
@@ -81,7 +81,7 @@ export default function Home() {
             </p>
             <p>Нажмите кнопку ниже для входа:</p>
 
-            <a href={authUrl} className="imgBtn linkBtn">
+            <a href={authUrl} className="neoBtn linkBtn">
               Авторизация
             </a>
           </>
@@ -112,8 +112,6 @@ export default function Home() {
           width: min(520px, 100%);
           padding: 26px 22px;
           border-radius: 18px;
-
-          /* Чуть легче, чтобы кнопка не “тонулa” */
           background: rgba(0, 0, 0, 0.35);
           backdrop-filter: blur(6px);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
@@ -138,8 +136,8 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        /* ✅ КНОПКА: прозрачный фон + рамка/свечение из PNG */
-        .imgBtn {
+        /* ✅ Нормальная кнопка БЕЗ PNG: неон/кибер стиль */
+        .neoBtn {
           appearance: none;
           border: none;
           cursor: pointer;
@@ -148,32 +146,40 @@ export default function Home() {
           max-width: 100%;
           height: 56px;
 
-          background-color: transparent; /* 🔑 */
-          background-image: url("/images/button.png");
-          background-repeat: no-repeat;
-          background-position: center;
-          background-size: contain; /* 🔑 не растягиваем свечение */
+          background: rgba(0, 0, 0, 0.18);
+          border-radius: 999px;
 
           color: #fff;
-          font-weight: 600;
+          font-weight: 700;
           font-size: 16px;
+          letter-spacing: 0.2px;
 
           display: inline-flex;
           align-items: center;
           justify-content: center;
 
-          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-          transition: transform 0.15s ease, filter 0.15s ease;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+
+          /* рамка + свечение */
+          box-shadow:
+            0 0 0 1px rgba(255, 0, 0, 0.55),
+            0 0 14px rgba(255, 0, 0, 0.55),
+            inset 0 0 14px rgba(255, 0, 0, 0.25);
+
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
 
-        .imgBtn:hover {
+        .neoBtn:hover {
           transform: translateY(-1px);
-          filter: brightness(1.12);
+          background: rgba(0, 0, 0, 0.26);
+          box-shadow:
+            0 0 0 1px rgba(255, 0, 0, 0.85),
+            0 0 20px rgba(255, 0, 0, 0.85),
+            inset 0 0 18px rgba(255, 0, 0, 0.35);
         }
 
-        .imgBtn:active {
-          transform: scale(0.98);
-          filter: brightness(0.95);
+        .neoBtn:active {
+          transform: scale(0.97);
         }
 
         .linkBtn {
@@ -188,7 +194,7 @@ export default function Home() {
           .card {
             padding: 22px 16px;
           }
-          .imgBtn {
+          .neoBtn {
             width: 100%;
             max-width: 280px;
             height: 54px;
